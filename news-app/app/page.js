@@ -1,5 +1,5 @@
 import Table from './ui/table.js'
-import OutlinedCard from './ui/settings.js'
+import OutlinedCard from './ui/card.js'
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 
