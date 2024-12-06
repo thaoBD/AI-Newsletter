@@ -1,27 +1,24 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import dotenv from 'dotenv';
 
-// put api calls here
-require('dotenv').config();
-
+dotenv.config();
 var NEWS_API_KEY = process.env.NEWS_API_KEY;
 var esc = encodeURIComponent;
 var requestOptions = {
-    method: 'GET'
+    method: 'POST'
 };
 
-export const config = {
-    api: {
-      bodyParser: false,
-    },
-  }  
-
-export default function newsHandler(req, res) {
-    var query = createQuery(parseUserFilters(req))
-    fetch("https://api.thenewsapi.com/v1/news/all?" + query, requestOptions)
-    .then(response => response.text())
-    .then(result => res.status(200).json({result}))
-    .catch(error => res.status(500).json({ error: {error} }));
-  }  
+export async function POST(req) {
+    var url = "https://api.thenewsapi.com/v1/news/all?" + createQuery(parseUserFilters(req));
+    
+    try {
+        const response = await fetch(url, requestOptions)
+        if (!response.ok) { throw new Error(response.status); }
+        return new Response(await response.text(), { status: 200 });
+    } catch (error) {
+        console.log(error)
+        return new Response(JSON.stringify({ error: 'Failed to send text' }), { status: 500 });
+    }
+}  
 
 // Parses user filters into an object accepted by the API
 function parseUserFilters(params) {
@@ -33,11 +30,9 @@ function parseUserFilters(params) {
     return {
         api_token: NEWS_API_KEY,
         search_fields: 'title,description,keywords,main_text',
-        domains: 'google',
-        exclude_domains: '',
         language: 'en',
-        search: 'apple',
-        limit: '10'
+        search: 'apples',
+        limit: '3'
     }
 }
 

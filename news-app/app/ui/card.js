@@ -14,19 +14,28 @@ import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 // use api routes
 
-export default function OutlinedCard() {
+async function newsPOST() {
+  try {const response = await fetch('/api/news', {
+        method: "POST",
+        body: JSON.stringify(""),
+    })
+    return await response.json()
+  } catch (error) {console.error('Error fetching data:', error);}
+}
+
+export default function OutlinedCard({data, setData}) {
   const [keyInput, setKeyInput] = useState('');
   const [domainInput, setDomainInput] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [domains, setDomains] = useState([]);
   const [emailToggle, setEmailToggle] = useState(false);
   const [textToggle, setTextToggle] = useState(false);
-  const [results, setResults] = useState([]);
+  
 
+  // Handle Toggles
   const handleEmailToggleChange = () => {
     setEmailToggle(prevState => !prevState);
   };
-
   const handleTextToggleChange = () => {
     setTextToggle(prevState => !prevState);
   };
@@ -35,7 +44,6 @@ export default function OutlinedCard() {
   const handleKeyInputChange = (e) => {
     setKeyInput(e.target.value);
   };
-
   const handleAddKeyword = (e) => {
     var input = keyInput.trim()
     if (e.key === 'Enter' && input.trim() !== '') {
@@ -43,7 +51,6 @@ export default function OutlinedCard() {
       setKeyInput('');
     }
   };
-
   const handleRemoveKeyword = (keyword) => {
     setKeywords((prevKeywords) =>
       prevKeywords.filter((item) => item !== keyword)
@@ -54,7 +61,6 @@ export default function OutlinedCard() {
   const handleDomainInputChange = (e) => {
     setDomainInput(e.target.value);
   };
-
   const handleAddDomain = (e) => {
     var input = domainInput.trim()
     if (e.key === 'Enter' && input !== '') {
@@ -62,7 +68,6 @@ export default function OutlinedCard() {
       setDomainInput('');
     }
   };
-
   const handleRemoveDomain = (domain) => {
     setDomains((prevDomains) =>
       prevDomains.filter((item) => item !== domain)
@@ -70,31 +75,13 @@ export default function OutlinedCard() {
   };
 
   // Handle Form Submission
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     // Prevent default form submission
     event.preventDefault();
-    console.log('Tags:', keywords);
-    console.log('Domains:', domains);
-    console.log('Email:', emailToggle);
-    console.log('text:', textToggle);
+    const res = await newsPOST()
+    setData(res)
+    console.log(res)
   };
-
-  // const handleSearch = async () => {
-  //   try {
-  //     const response = await fetch('https://your-api-endpoint.com/search', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ keywords }),
-  //     });
-  //     const data = await response.json();
-  //     console.log('API response:', data); // Handle the API response as needed
-  //   } catch (error) {
-  //     console.error('Error sending data to API:', error);
-  //   }
-  // };
-
 
   return (
     <Box sx={{ minWidth: 275, backgroundColor: '#6573C3'}}>
