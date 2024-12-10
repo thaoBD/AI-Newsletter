@@ -16,7 +16,7 @@ export async function POST(req) {
         return new Response(await response.text(), { status: 200 });
     } catch (error) {
         console.log(error)
-        return new Response(JSON.stringify({ error: 'Failed to send text' }), { status: 500 });
+        return new Response(JSON.stringify({ error: 'Failed to get articles.' }), { status: 500 });
     }
 }  
 

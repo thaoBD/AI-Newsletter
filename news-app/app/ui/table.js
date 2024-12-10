@@ -41,20 +41,22 @@ export default function NewsTable({data}) {
 
         <TableHead>
           <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell align="right">Title</TableCell>
-            <TableCell align="right">Domain</TableCell>
-            <TableCell align="right">Tags</TableCell>
+            <TableCell align="right" width="10%">Date</TableCell>
+            <TableCell align="right" width="50%">Title</TableCell>
+            <TableCell align="right" width="20%">Domain</TableCell>
+            <TableCell align="right" width="20%">Tags</TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-            <TableRow>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-            </TableRow>
+          {data.map((row, index) => (
+          <TableRow key={index}>
+            <TableCell align="right">{row.date}</TableCell>
+            <TableCell align="right">{row.title}</TableCell>
+            <TableCell align="right">{row.domain}</TableCell>
+            <TableCell align="right">{row.keywords}</TableCell>
+          </TableRow>
+          ))}
         </TableBody>
 
       </Table>

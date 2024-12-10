@@ -96,7 +96,6 @@ export default function OutlinedCard({data, updateData}) {
       domains: domains,
     })
     updateData(res)
-    console.log(res)
   };
 
   return (
