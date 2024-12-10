@@ -7,14 +7,19 @@ import {useState} from 'react';
 
 export default function App() {
   const [data, setData] = useState('');
+
+  const updateData = (newData) => {
+    setData(newData);
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         <Grid size={9}>
-        <Table data = {data} setData = {setData}/>
+        <Table data = {data}/>
         </Grid>
         <Grid size={3}>
-        <OutlinedCard data = {data} setData = {setData}/>
+        <OutlinedCard data = {data} updateData = {updateData}/>
         </Grid>
       </Grid>
     </Box>

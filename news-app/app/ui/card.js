@@ -12,25 +12,38 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
-// use api routes
 
-async function newsPOST() {
+async function newsPOST(req) {
   try {const response = await fetch('/api/news', {
         method: "POST",
-        body: JSON.stringify(""),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
     })
     return await response.json()
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-export default function OutlinedCard({data, setData}) {
+async function databasePOST(req) {
+  try {const response = await fetch('/api/database', {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
+    })
+    return await response.json()
+  } catch (error) {console.error('Error fetching data:', error);}
+}
+
+export default function OutlinedCard({data, updateData}) {
   const [keyInput, setKeyInput] = useState('');
   const [domainInput, setDomainInput] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [domains, setDomains] = useState([]);
   const [emailToggle, setEmailToggle] = useState(false);
   const [textToggle, setTextToggle] = useState(false);
-  
 
   // Handle Toggles
   const handleEmailToggleChange = () => {
@@ -46,7 +59,7 @@ export default function OutlinedCard({data, setData}) {
   };
   const handleAddKeyword = (e) => {
     var input = keyInput.trim()
-    if (e.key === 'Enter' && input.trim() !== '') {
+    if (e.key === 'Enter' && input !== '') {
       setKeywords((prevKeywords) => prevKeywords.includes(input) ? prevKeywords : [...prevKeywords, input]);
       setKeyInput('');
     }
@@ -75,11 +88,14 @@ export default function OutlinedCard({data, setData}) {
   };
 
   // Handle Form Submission
-  const handleSubmit = async (event) => {
+  const handleFilter = async (event) => {
     // Prevent default form submission
     event.preventDefault();
-    const res = await newsPOST()
-    setData(res)
+    const res = await newsPOST({
+      keywords: keywords,
+      domains: domains,
+    })
+    updateData(res)
     console.log(res)
   };
 
@@ -164,7 +180,7 @@ export default function OutlinedCard({data, setData}) {
       
       {/* Submission Section */}
       <CardActions>
-        <Button size="small" onClick={handleSubmit} >Apply Filter</Button>
+        <Button size="small" onClick={handleFilter} >Apply Filter</Button>
         <Button size="small" disabled>Save</Button>
       </CardActions>
       

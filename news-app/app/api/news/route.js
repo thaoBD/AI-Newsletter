@@ -8,8 +8,8 @@ var requestOptions = {
 };
 
 export async function POST(req) {
-    var url = "https://api.thenewsapi.com/v1/news/all?" + createQuery(parseUserFilters(req));
-    
+    var url = "https://api.thenewsapi.com/v1/news/all?" + createQuery(parseUserFilters(await req.json()));
+
     try {
         const response = await fetch(url, requestOptions)
         if (!response.ok) { throw new Error(response.status); }
@@ -22,16 +22,28 @@ export async function POST(req) {
 
 // Parses user filters into an object accepted by the API
 function parseUserFilters(params) {
-    // TODO - Parse the user filters into the return object
-    // + signifies AND operation, | signifies OR operation, - negates a single token, 
-    // " wraps a number of tokens to signify a phrase for searching, 
-    // * at the end of a term signifies a prefix query, ( and ) signify precedence
+    // Parse domain filters
+    const domains = params.domains.join(',')
+
+    // Parse search filters
+    const exceptions = ["+", "|", "-", "\"", "*"]
+    let keywords = ''
+    for (let i = 0; i < params.keywords.length; i++) {
+        if ((exceptions.includes(params.keywords[i].charAt(0))) || 
+            (params.keywords[i].charAt(0) == "(" && params.keywords[i].charAt(stringLength - 1) == ")")) {
+            keywords += params.keywords[i]
+        } else {
+            keywords = keywords + "+" + params.keywords[i]
+    }}
+    
 
     return {
         api_token: NEWS_API_KEY,
         search_fields: 'title,description,keywords,main_text',
         language: 'en',
-        search: 'apples',
+        search: keywords,
+        domains: domains,
+        sort: 'published_on',
         limit: '3'
     }
 }
@@ -39,6 +51,6 @@ function parseUserFilters(params) {
 // Send a query to the API
 function createQuery(params) {
     return Object.keys(params)
-    .map(function(k) {return esc(k) + '=' + esc(params[k]);})
-    .join('&');
+        .map(function(k) {return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);})
+        .join('&');
 }

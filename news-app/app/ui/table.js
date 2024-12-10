@@ -31,11 +31,8 @@ const doop = createTheme({
   }
 });
 
-
-
-export default function NewsTable() {
+export default function NewsTable({data}) {
   return (
-    // have a variable in table depend on data in card.js
     // only updates quickly for state variables
     <section>
     <ThemeProvider theme={doop}>
