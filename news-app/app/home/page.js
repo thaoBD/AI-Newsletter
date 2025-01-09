@@ -4,7 +4,7 @@ import OutlinedCard from '../ui/card.js'
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import {useState} from 'react';
-import { useSession, signIn, signOut, SessionProvider } from "next-auth/react"
+import { useSession, signIn, signOut } from "next-auth/react"
 
 
 export default function Home() {
@@ -15,7 +15,7 @@ export default function Home() {
     return <div>Loading...</div>;
   }
   
-  if (!session) {
+  if (status === "unauthenticated") {
     return(
       <>
       Not signed in <br/>
@@ -47,6 +47,7 @@ export default function Home() {
         <OutlinedCard data = {data} updateData = {updateData}/>
         </Grid>
       </Grid>
+      <button onClick={() => signOut()}>Sign Out</button>
     </Box>
   );
 }
