@@ -30,8 +30,10 @@ export default function Home() {
       parsedData[i] = {
         date: new Date(newData.data[i].published_at).toLocaleDateString(),
         title: newData.data[i].title,
+        url: newData.data[i].url,
         domain: newData.data[i].source,
         keywords: newData.data[i].keywords.slice(0, 5),
+        categories: newData.data[i].categories.join(', ')
       }
     }
     setData(parsedData);

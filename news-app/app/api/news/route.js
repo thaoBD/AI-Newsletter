@@ -22,8 +22,18 @@ export async function POST(req) {
 
 // Parses user filters into an object accepted by the API
 function parseUserFilters(params) {
+    console.log(params)
     // Parse domain filters
-    const domains = params.domains.join(',')
+    let inc_domains = ''
+    let exc_domains = ''
+    for  (let i=0; i < params.domains.length; i++) {
+        if (params.domains[i].charAt(0) == '+') {
+            inc_domains += ',' + params.domains[i].slice(1)
+        }
+        if (params.domains[i].charAt(0) == '-') {
+            exc_domains += params.domains[i].slice(1)
+        }
+    }
 
     // Parse search filters
     const exceptions = ["+", "|", "-", "\"", "*"]
@@ -35,16 +45,19 @@ function parseUserFilters(params) {
         } else {
             keywords = keywords + "+" + params.keywords[i]
     }}
-    
+
+    // Parse category filters
+    const categories = Object.keys(params.categories).filter(key => params.categories[key] === true).join(',');
 
     return {
         api_token: NEWS_API_KEY,
         search_fields: 'title,description,keywords,main_text',
         language: 'en',
         search: keywords,
-        domains: domains,
-        sort: 'published_on',
-        limit: '3'
+        domains: inc_domains,
+        exclude_domains: exc_domains,
+        categories: categories,
+        limit: '3',
     }
 }
 

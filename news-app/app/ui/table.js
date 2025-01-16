@@ -7,7 +7,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import { Link, Paper } from '@mui/material';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
@@ -44,7 +44,7 @@ export default function NewsTable({data}) {
             <TableCell align="right" width="10%">Date</TableCell>
             <TableCell align="right" width="50%">Title</TableCell>
             <TableCell align="right" width="20%">Domain</TableCell>
-            <TableCell align="right" width="20%">Tags</TableCell>
+            <TableCell align="right" width="20%">Categories</TableCell>
           </TableRow>
         </TableHead>
 
@@ -52,9 +52,11 @@ export default function NewsTable({data}) {
           {data.map((row, index) => (
           <TableRow key={index}>
             <TableCell align="right">{row.date}</TableCell>
-            <TableCell align="right">{row.title}</TableCell>
+            <TableCell align="right">
+              <Link href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</Link>
+            </TableCell>
             <TableCell align="right">{row.domain}</TableCell>
-            <TableCell align="right">{row.keywords}</TableCell>
+            <TableCell align="right">{row.categories}</TableCell>
           </TableRow>
           ))}
         </TableBody>
