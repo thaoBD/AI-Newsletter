@@ -48,6 +48,7 @@ export default function OutlinedCard({data, updateData}) {
     travel: false
   });
   const { general, science, sports, business, health, entertainment, tech, politics, food, travel } = categories;
+  const [domainOp, setDomainOp] = useState('+');
   const [domainInput, setDomainInput] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [domains, setDomains] = useState([]);
@@ -73,7 +74,7 @@ export default function OutlinedCard({data, updateData}) {
   };
   const handleAddKeyword = (e) => {
     var input = keyOp + keyInput.trim()
-    if (keyOp && e.key === 'Enter' && input !== '') {
+    if (e.key === 'Enter' && input !== '') {
       setKeywords((prev) => prev.includes(input) ? prev : [...prev, input]);
       setKeyInput('');
     }
@@ -91,12 +92,17 @@ export default function OutlinedCard({data, updateData}) {
     });
   };
 
+  // Handle Domain Op
+  const handleDomainOp = (e) => {
+    setDomainOp(e.target.value);
+  };
+
   // Handle Domains
   const handleDomainInputChange = (e) => {
     setDomainInput(e.target.value);
   };
   const handleAddDomain = (e) => {
-    var input = domainInput.trim()
+    var input = domainOp + domainInput.trim()
     if (e.key === 'Enter' && input !== '') {
       setDomains((prev) => prev.includes(input) ? prev : [...prev, input]);
       setDomainInput('');
@@ -192,15 +198,31 @@ export default function OutlinedCard({data, updateData}) {
       <Box>
         <Typography gutterBottom variant="h6" component="div">Domains</Typography>
 
-        <Box sx={{ width: 500, maxWidth: '100%' }}>
-          <TextField 
-          label="search domains"
-          type="text"
-          value={domainInput}
-          onChange={handleDomainInputChange}
-          onKeyDown={handleAddDomain}
-          placeholder="Enter Domains Here"/>
-        </Box>
+        <Stack direction="row" spacing={2}>
+          <Box sx={{ width: 100, maxWidth: '20%' }}>
+          <FormControl>
+          <InputLabel>Filter</InputLabel>
+          <Select
+            value={domainOp}
+            label="filter *"
+            onChange={handleDomainOp}>
+            <MenuItem value={"+"}>include</MenuItem>
+            <MenuItem value={"-"}>exclude</MenuItem>
+          </Select>
+          <FormHelperText>Required</FormHelperText>
+          </FormControl>
+          </Box>
+          
+          <Box sx={{ width: 500, maxWidth: '100%' }}>
+            <TextField 
+            label="search domains"
+            type="text"
+            value={domainInput}
+            onChange={handleDomainInputChange}
+            onKeyDown={handleAddDomain}
+            placeholder="Enter Domains Here"/>
+          </Box>
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           {domains.map((domain, index) => (

@@ -22,9 +22,18 @@ export async function POST(req) {
 
 // Parses user filters into an object accepted by the API
 function parseUserFilters(params) {
-    // console.log(params)
+    console.log(params)
     // Parse domain filters
-    const domains = params.domains.join(',')
+    let inc_domains = ''
+    let exc_domains = ''
+    for  (let i=0; i < params.domains.length; i++) {
+        if (params.domains[i].charAt(0) == '+') {
+            inc_domains += ',' + params.domains[i].slice(1)
+        }
+        if (params.domains[i].charAt(0) == '-') {
+            exc_domains += params.domains[i].slice(1)
+        }
+    }
 
     // Parse search filters
     const exceptions = ["+", "|", "-", "\"", "*"]
@@ -45,7 +54,8 @@ function parseUserFilters(params) {
         search_fields: 'title,description,keywords,main_text',
         language: 'en',
         search: keywords,
-        domains: domains,
+        domains: inc_domains,
+        exclude_domains: exc_domains,
         categories: categories,
         limit: '3',
     }
