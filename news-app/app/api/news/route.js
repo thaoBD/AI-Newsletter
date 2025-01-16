@@ -36,7 +36,7 @@ function parseUserFilters(params) {
     }
 
     // Parse search filters
-    const exceptions = ["+", "|", "-", "\"", "*"]
+    const exceptions = ["+", "-"]
     let keywords = ''
     for (let i = 0; i < params.keywords.length; i++) {
         if ((exceptions.includes(params.keywords[i].charAt(0))) || 
