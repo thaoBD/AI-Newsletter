@@ -2,16 +2,11 @@
 import {useState} from 'react';
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import Stack from '@mui/material/Stack';
+import {Card, CardActions, CardContent} from '@mui/material';
+import {FormGroup, FormControlLabel, FormControl, FormHelperText} from '@mui/material';
+import {Button, TextField, Switch, Stack, Select, MenuItem, Checkbox} from '@mui/material';
+import InputLabel from '@mui/material/InputLabel';
 
 async function newsPOST(req) {
   try {const response = await fetch('/api/news', {
@@ -38,7 +33,21 @@ async function databasePOST(req) {
 }
 
 export default function OutlinedCard({data, updateData}) {
+  const [keyOp, setKeyOp] = useState('+');
   const [keyInput, setKeyInput] = useState('');
+  const [categories, setCategories] = useState({
+    general: false,
+    science: false,
+    sports: false,
+    business: false,
+    health: false,
+    entertainment: false,
+    tech: false,
+    politics: false,
+    food: false,
+    travel: false
+  });
+  const { general, science, sports, business, health, entertainment, tech, politics, food, travel } = categories;
   const [domainInput, setDomainInput] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [domains, setDomains] = useState([]);
@@ -53,21 +62,33 @@ export default function OutlinedCard({data, updateData}) {
     setTextToggle(prevState => !prevState);
   };
 
+  // Handle Key Op
+  const handleKeyOp = (e) => {
+    setKeyOp(e.target.value);
+  };
+
   // Handle Keywords
   const handleKeyInputChange = (e) => {
     setKeyInput(e.target.value);
   };
   const handleAddKeyword = (e) => {
-    var input = keyInput.trim()
-    if (e.key === 'Enter' && input !== '') {
-      setKeywords((prevKeywords) => prevKeywords.includes(input) ? prevKeywords : [...prevKeywords, input]);
+    var input = keyOp + keyInput.trim()
+    if (keyOp && e.key === 'Enter' && input !== '') {
+      setKeywords((prev) => prev.includes(input) ? prev : [...prev, input]);
       setKeyInput('');
     }
   };
   const handleRemoveKeyword = (keyword) => {
-    setKeywords((prevKeywords) =>
-      prevKeywords.filter((item) => item !== keyword)
+    setKeywords((prev) => prev.filter((item) => item !== keyword)
     );
+  };
+
+  // Handle Categories
+  const handleCategories = (e) => {
+    setCategories({
+      ...categories,
+      [e.target.name]: e.target.checked,
+    });
   };
 
   // Handle Domains
@@ -77,13 +98,12 @@ export default function OutlinedCard({data, updateData}) {
   const handleAddDomain = (e) => {
     var input = domainInput.trim()
     if (e.key === 'Enter' && input !== '') {
-      setDomains((prevDomains) => prevDomains.includes(input) ? prevDomains : [...prevDomains, input]);
+      setDomains((prev) => prev.includes(input) ? prev : [...prev, input]);
       setDomainInput('');
     }
   };
   const handleRemoveDomain = (domain) => {
-    setDomains((prevDomains) =>
-      prevDomains.filter((item) => item !== domain)
+    setDomains((prev) => prev.filter((item) => item !== domain)
     );
   };
 
@@ -93,6 +113,7 @@ export default function OutlinedCard({data, updateData}) {
     event.preventDefault();
     const res = await newsPOST({
       keywords: keywords,
+      categories: categories,
       domains: domains,
     })
     updateData(res)
@@ -106,19 +127,36 @@ export default function OutlinedCard({data, updateData}) {
 
       <Typography gutterBottom variant="h6" component="div">FILTERS</Typography>
 
-      {/* Tags Section */}
+      {/* Keywords Section */}
       <Box>
-        <Typography gutterBottom variant="h6" component="div">Tags</Typography>
+        <Typography gutterBottom variant="h6" component="div">Keywords</Typography>
 
-        <Box sx={{ width: 500, maxWidth: '100%' }}>
+        <Stack direction="row" spacing={2}>
+        <Box sx={{ width: 100, maxWidth: '20%' }}>
+        <FormControl>
+        <InputLabel>Filter</InputLabel>
+        <Select
+          value={keyOp}
+          label="filter *"
+          onChange={handleKeyOp}
+        >
+          <MenuItem value={"+"}>include</MenuItem>
+          <MenuItem value={"-"}>exclude</MenuItem>
+        </Select>
+        <FormHelperText>Required</FormHelperText>
+        </FormControl>
+        </Box>
+
+        <Box sx={{ width: 200, maxWidth: '60%' }}>
           <TextField 
-          label="search tags"
+          label="search keywords"
           type="text"
           value={keyInput}
           onChange={handleKeyInputChange}
           onKeyDown={handleAddKeyword}
           placeholder="Enter Keywords Here"/>
         </Box>
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           {keywords.map((keyword, index) => (
@@ -130,6 +168,23 @@ export default function OutlinedCard({data, updateData}) {
             </Button>
           ))}
         </Stack>
+
+      </Box>
+
+      {/* Categories Section */}
+      <Box>
+        <Typography gutterBottom variant="h6" component="div">Categories</Typography>
+
+        <Box sx={{ width: 500, maxWidth: '100%', maxHeight: 100, overflow: 'auto'}}>
+          <FormGroup>
+          {['general', 'science', 'sports', 'business', 'health', 'entertainment', 'tech', 'politics', 'food', 'travel'].map((label, index) => (
+          <FormControlLabel
+          key={index}
+          control={<Checkbox checked={categories[label]} onChange={handleCategories} name={label} />}
+          label={label}/>
+          ))}
+          </FormGroup>
+        </Box>
 
       </Box>
       

@@ -22,6 +22,7 @@ export async function POST(req) {
 
 // Parses user filters into an object accepted by the API
 function parseUserFilters(params) {
+    // console.log(params)
     // Parse domain filters
     const domains = params.domains.join(',')
 
@@ -35,7 +36,9 @@ function parseUserFilters(params) {
         } else {
             keywords = keywords + "+" + params.keywords[i]
     }}
-    
+
+    // Parse category filters
+    const categories = Object.keys(params.categories).filter(key => params.categories[key] === true).join(',');
 
     return {
         api_token: NEWS_API_KEY,
@@ -43,8 +46,8 @@ function parseUserFilters(params) {
         language: 'en',
         search: keywords,
         domains: domains,
-        sort: 'published_on',
-        limit: '3'
+        categories: categories,
+        limit: '3',
     }
 }
 
