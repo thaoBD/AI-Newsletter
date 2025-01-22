@@ -2,35 +2,58 @@
 import {useState} from 'react';
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import Stack from '@mui/material/Stack';
-// use api routes
+import {Card, CardActions, CardContent} from '@mui/material';
+import {FormGroup, FormControlLabel, FormControl, FormHelperText} from '@mui/material';
+import {Button, TextField, Switch, Stack, Select, MenuItem, Checkbox} from '@mui/material';
+import InputLabel from '@mui/material/InputLabel';
 
-async function newsPOST() {
+async function newsPOST(req) {
   try {const response = await fetch('/api/news', {
         method: "POST",
-        body: JSON.stringify(""),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
     })
     return await response.json()
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-export default function OutlinedCard({data, setData}) {
+async function databasePOST(req) {
+  try {const response = await fetch('/api/database', {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(req),
+    })
+    return await response.json()
+  } catch (error) {console.error('Error fetching data:', error);}
+}
+
+export default function OutlinedCard({data, updateData}) {
+  const [keyOp, setKeyOp] = useState('+');
   const [keyInput, setKeyInput] = useState('');
+  const [categories, setCategories] = useState({
+    general: false,
+    science: false,
+    sports: false,
+    business: false,
+    health: false,
+    entertainment: false,
+    tech: false,
+    politics: false,
+    food: false,
+    travel: false
+  });
+  const { general, science, sports, business, health, entertainment, tech, politics, food, travel } = categories;
+  const [domainOp, setDomainOp] = useState('+');
   const [domainInput, setDomainInput] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [domains, setDomains] = useState([]);
   const [emailToggle, setEmailToggle] = useState(false);
   const [textToggle, setTextToggle] = useState(false);
-  
 
   // Handle Toggles
   const handleEmailToggleChange = () => {
@@ -40,21 +63,38 @@ export default function OutlinedCard({data, setData}) {
     setTextToggle(prevState => !prevState);
   };
 
+  // Handle Key Op
+  const handleKeyOp = (e) => {
+    setKeyOp(e.target.value);
+  };
+
   // Handle Keywords
   const handleKeyInputChange = (e) => {
     setKeyInput(e.target.value);
   };
   const handleAddKeyword = (e) => {
-    var input = keyInput.trim()
-    if (e.key === 'Enter' && input.trim() !== '') {
-      setKeywords((prevKeywords) => prevKeywords.includes(input) ? prevKeywords : [...prevKeywords, input]);
+    var input = keyOp + keyInput.trim()
+    if (e.key === 'Enter' && input !== '') {
+      setKeywords((prev) => prev.includes(input) ? prev : [...prev, input]);
       setKeyInput('');
     }
   };
   const handleRemoveKeyword = (keyword) => {
-    setKeywords((prevKeywords) =>
-      prevKeywords.filter((item) => item !== keyword)
+    setKeywords((prev) => prev.filter((item) => item !== keyword)
     );
+  };
+
+  // Handle Categories
+  const handleCategories = (e) => {
+    setCategories({
+      ...categories,
+      [e.target.name]: e.target.checked,
+    });
+  };
+
+  // Handle Domain Op
+  const handleDomainOp = (e) => {
+    setDomainOp(e.target.value);
   };
 
   // Handle Domains
@@ -62,25 +102,27 @@ export default function OutlinedCard({data, setData}) {
     setDomainInput(e.target.value);
   };
   const handleAddDomain = (e) => {
-    var input = domainInput.trim()
+    var input = domainOp + domainInput.trim()
     if (e.key === 'Enter' && input !== '') {
-      setDomains((prevDomains) => prevDomains.includes(input) ? prevDomains : [...prevDomains, input]);
+      setDomains((prev) => prev.includes(input) ? prev : [...prev, input]);
       setDomainInput('');
     }
   };
   const handleRemoveDomain = (domain) => {
-    setDomains((prevDomains) =>
-      prevDomains.filter((item) => item !== domain)
+    setDomains((prev) => prev.filter((item) => item !== domain)
     );
   };
 
   // Handle Form Submission
-  const handleSubmit = async (event) => {
+  const handleFilter = async (event) => {
     // Prevent default form submission
     event.preventDefault();
-    const res = await newsPOST()
-    setData(res)
-    console.log(res)
+    const res = await newsPOST({
+      keywords: keywords,
+      categories: categories,
+      domains: domains,
+    })
+    updateData(res)
   };
 
   return (
@@ -91,19 +133,36 @@ export default function OutlinedCard({data, setData}) {
 
       <Typography gutterBottom variant="h6" component="div">FILTERS</Typography>
 
-      {/* Tags Section */}
+      {/* Keywords Section */}
       <Box>
-        <Typography gutterBottom variant="h6" component="div">Tags</Typography>
+        <Typography gutterBottom variant="h6" component="div">Keywords</Typography>
 
-        <Box sx={{ width: 500, maxWidth: '100%' }}>
+        <Stack direction="row" spacing={2}>
+        <Box sx={{ width: 100, maxWidth: '20%' }}>
+        <FormControl>
+        <InputLabel>Filter</InputLabel>
+        <Select
+          value={keyOp}
+          label="filter *"
+          onChange={handleKeyOp}
+        >
+          <MenuItem value={"+"}>include</MenuItem>
+          <MenuItem value={"-"}>exclude</MenuItem>
+        </Select>
+        <FormHelperText>Required</FormHelperText>
+        </FormControl>
+        </Box>
+
+        <Box sx={{ width: 200, maxWidth: '60%' }}>
           <TextField 
-          label="search tags"
+          label="search keywords"
           type="text"
           value={keyInput}
           onChange={handleKeyInputChange}
           onKeyDown={handleAddKeyword}
           placeholder="Enter Keywords Here"/>
         </Box>
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           {keywords.map((keyword, index) => (
@@ -117,20 +176,53 @@ export default function OutlinedCard({data, setData}) {
         </Stack>
 
       </Box>
+
+      {/* Categories Section */}
+      <Box>
+        <Typography gutterBottom variant="h6" component="div">Categories</Typography>
+
+        <Box sx={{ width: 500, maxWidth: '100%', maxHeight: 100, overflow: 'auto'}}>
+          <FormGroup>
+          {['general', 'science', 'sports', 'business', 'health', 'entertainment', 'tech', 'politics', 'food', 'travel'].map((label, index) => (
+          <FormControlLabel
+          key={index}
+          control={<Checkbox checked={categories[label]} onChange={handleCategories} name={label} />}
+          label={label}/>
+          ))}
+          </FormGroup>
+        </Box>
+
+      </Box>
       
       {/* Domains Section */}
       <Box>
         <Typography gutterBottom variant="h6" component="div">Domains</Typography>
 
-        <Box sx={{ width: 500, maxWidth: '100%' }}>
-          <TextField 
-          label="search domains"
-          type="text"
-          value={domainInput}
-          onChange={handleDomainInputChange}
-          onKeyDown={handleAddDomain}
-          placeholder="Enter Domains Here"/>
-        </Box>
+        <Stack direction="row" spacing={2}>
+          <Box sx={{ width: 100, maxWidth: '20%' }}>
+          <FormControl>
+          <InputLabel>Filter</InputLabel>
+          <Select
+            value={domainOp}
+            label="filter *"
+            onChange={handleDomainOp}>
+            <MenuItem value={"+"}>include</MenuItem>
+            <MenuItem value={"-"}>exclude</MenuItem>
+          </Select>
+          <FormHelperText>Required</FormHelperText>
+          </FormControl>
+          </Box>
+          
+          <Box sx={{ width: 500, maxWidth: '100%' }}>
+            <TextField 
+            label="search domains"
+            type="text"
+            value={domainInput}
+            onChange={handleDomainInputChange}
+            onKeyDown={handleAddDomain}
+            placeholder="Enter Domains Here"/>
+          </Box>
+        </Stack>
 
         <Stack direction="row" spacing={2}>
           {domains.map((domain, index) => (
@@ -164,7 +256,7 @@ export default function OutlinedCard({data, setData}) {
       
       {/* Submission Section */}
       <CardActions>
-        <Button size="small" onClick={handleSubmit} >Apply Filter</Button>
+        <Button size="small" onClick={handleFilter} >Apply Filter</Button>
         <Button size="small" disabled>Save</Button>
       </CardActions>
       

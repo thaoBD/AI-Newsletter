@@ -7,7 +7,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import { Link, Paper } from '@mui/material';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
@@ -31,11 +31,8 @@ const doop = createTheme({
   }
 });
 
-
-
-export default function NewsTable() {
+export default function NewsTable({data}) {
   return (
-    // have a variable in table depend on data in card.js
     // only updates quickly for state variables
     <section>
     <ThemeProvider theme={doop}>
@@ -44,20 +41,24 @@ export default function NewsTable() {
 
         <TableHead>
           <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell align="right">Title</TableCell>
-            <TableCell align="right">Domain</TableCell>
-            <TableCell align="right">Tags</TableCell>
+            <TableCell align="right" width="10%">Date</TableCell>
+            <TableCell align="right" width="50%">Title</TableCell>
+            <TableCell align="right" width="20%">Domain</TableCell>
+            <TableCell align="right" width="20%">Categories</TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-            <TableRow>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-              <TableCell align="right"></TableCell>
-            </TableRow>
+          {data.map((row, index) => (
+          <TableRow key={index}>
+            <TableCell align="right">{row.date}</TableCell>
+            <TableCell align="right">
+              <Link href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</Link>
+            </TableCell>
+            <TableCell align="right">{row.domain}</TableCell>
+            <TableCell align="right">{row.categories}</TableCell>
+          </TableRow>
+          ))}
         </TableBody>
 
       </Table>
