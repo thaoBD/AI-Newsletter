@@ -9,7 +9,7 @@ var requestOptions = {
 
 export async function POST(req) {
     var url = "https://api.thenewsapi.com/v1/news/all?" + createQuery(parseUserFilters(await req.json()));
-
+    // console.log(url)
     try {
         const response = await fetch(url, requestOptions)
         if (!response.ok) { throw new Error(response.status); }
@@ -36,15 +36,14 @@ function parseUserFilters(params) {
     }
 
     // Parse search filters
-    const exceptions = ["+", "|", "-", "\"", "*"]
     let keywords = ''
     for (let i = 0; i < params.keywords.length; i++) {
-        if ((exceptions.includes(params.keywords[i].charAt(0))) || 
-            (params.keywords[i].charAt(0) == "(" && params.keywords[i].charAt(stringLength - 1) == ")")) {
-            keywords += params.keywords[i]
-        } else {
-            keywords = keywords + "+" + params.keywords[i]
-    }}
+        if (params.keywords[i].charAt(0) == '+') {
+            keywords += ` ${params.keywords[i]}`
+        } else if (params.keywords[i].charAt(0) == '-') {
+            keywords += ` ${params.keywords[i]}`
+        }
+    }
 
     // Parse category filters
     const categories = Object.keys(params.categories).filter(key => params.categories[key] === true).join(',');
@@ -57,6 +56,8 @@ function parseUserFilters(params) {
         domains: inc_domains,
         exclude_domains: exc_domains,
         categories: categories,
+        published_on: new Date().toJSON().slice(0, 10),
+        sort: 'published_on',
         limit: '3',
     }
 }
