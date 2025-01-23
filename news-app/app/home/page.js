@@ -14,7 +14,7 @@ export default function Home() {
   if (status === "loading") {
     return <div>Loading...</div>;
   }
-  
+
   if (status === "unauthenticated") {
     return(
       <>
@@ -46,7 +46,7 @@ export default function Home() {
         <NewsTable data = {data}/>
         </Grid>
         <Grid size={3}>
-        <OutlinedCard data = {data} updateData = {updateData}/>
+        <OutlinedCard session = {session} data = {data} updateData = {updateData}/>
         </Grid>
       </Grid>
       <button onClick={() => signOut()}>Sign Out</button>

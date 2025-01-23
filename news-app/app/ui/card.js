@@ -20,19 +20,19 @@ async function newsPOST(req) {
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-async function databasePOST(req) {
+async function databaseGET() {
   try {const response = await fetch('/api/database', {
-        method: "POST",
+        method: "GET",
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(req),
+        // body: JSON.stringify(req),
     })
     return await response.json()
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-export default function OutlinedCard({data, updateData}) {
+export default function OutlinedCard({session, data, updateData}) {
   const [keyOp, setKeyOp] = useState('+');
   const [keyInput, setKeyInput] = useState('');
   const [categories, setCategories] = useState({
@@ -63,7 +63,7 @@ export default function OutlinedCard({data, updateData}) {
     setTextToggle(prevState => !prevState);
   };
 
-  // Handle Key Op
+  // Handle Keywords Op
   const handleKeyOp = (e) => {
     setKeyOp(e.target.value);
   };
@@ -124,6 +124,17 @@ export default function OutlinedCard({data, updateData}) {
     })
     updateData(res)
   };
+  const handleSave = async (event) => {
+    event.preventDefault();
+
+    const query = {
+      keywords: keywords,
+      categories: categories,
+      domains: domains,
+    }
+    
+    const res = await databaseGET()
+  }
 
   return (
     <Box sx={{ minWidth: 275, backgroundColor: '#6573C3'}}>
@@ -257,7 +268,7 @@ export default function OutlinedCard({data, updateData}) {
       {/* Submission Section */}
       <CardActions>
         <Button size="small" onClick={handleFilter} >Apply Filter</Button>
-        <Button size="small" disabled>Save</Button>
+        <Button size="small" onClick={handleSave}>Save</Button>
       </CardActions>
       
       </FormGroup></React.Fragment></Card>
