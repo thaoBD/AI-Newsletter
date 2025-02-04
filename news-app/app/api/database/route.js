@@ -9,10 +9,11 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+// Check if a user or preference exists based on user ID
 export async function GET(req) {
-    // replace temp_id with session ID
+    // replace temp_id with session ID, replace tableName with Users or UserPreferences (based off params)
     const temp_id = "001"
-    // replace tableName with Users or UserPreferences accordingly
+    // 
     const tableName = "Users"
     
     const command = new GetCommand({
@@ -21,25 +22,34 @@ export async function GET(req) {
           user_id: temp_id,
         },
       });
-      const res = await docClient.send(command);
-      console.log(res);
-      return res
+
+      try {
+        const res = await docClient.send(command);
+        console.log(res);
+        return res
+      } catch (error) {
+        console.error("Error putting item into DynamoDB:", error);
+        throw error;
+      } 
 }
 
+// Create a new user or Create a new user Preference
+// If a user preference already exists, edit user preference instead
 export async function POST(req) {
-    // replace temp_id with session ID
+    // replace temp_id with user ID, replace tableName with Users or UserPreferences, replace data with filters (based off params)
     const temp_id = "001"
-    // replace tableName with Users or UserPreferences accordingly
     const tableName = "Users"
-    // replace data with user preference
     const data = "temporary"
 
     let user_exists
 
-    if ((!await GET([temp_id, "Users"]))) { user_exists = await POST([temp_id]) }
+    // If user doesn't exist, make new user
+    if ((!await GET([temp_id, "Users"]))) { user_exists = await POST([temp_id, "Users"]) }
 
+    // Return user, if looking for User Table
     if (tableName == "Users") { return user_exists }
 
+    // If user preference exists, edit existing preference
     if (await GET([temp_id, "UserPreferences"])) {
         const res = await PUT([temp_id, tableName, data])
         return res
@@ -53,17 +63,21 @@ export async function POST(req) {
         },
     });
     
-    const res = await docClient.send(command);
-    console.log(res);
-    return res;
+    try {
+      const res = await docClient.send(command);
+      console.log(res);
+      return res;
+    } catch (error) {
+      console.error("Error putting item into DynamoDB:", error);
+      throw error;
+    } 
 }
 
+// Edit User Preference
 export async function PUT(req) {
-    // replace temp_id with session ID
+    // replace temp_id with user ID, replace tableName with Users or UserPreferences, replace data with filters (based off params)
     const temp_id = "001"
-    // replace tableName with Users or UserPreferences accordingly
     const tableName = "Users"
-    // replace data with user preference
     const data = "temporary"
 
     const command = new UpdateCommand({
@@ -76,7 +90,12 @@ export async function PUT(req) {
         ReturnValues: "ALL_NEW",      
     });
     
+    try {
       const res = await docClient.send(command);
       console.log(res);
       return res;
+    } catch (error) {
+      console.error("Error putting item into DynamoDB:", error);
+      throw error;
+    } 
 }
