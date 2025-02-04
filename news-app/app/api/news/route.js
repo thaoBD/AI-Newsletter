@@ -50,7 +50,7 @@ function parseUserFilters(params) {
 
     return {
         api_token: NEWS_API_KEY,
-        search_fields: 'title,description,keywords,main_text',
+        search_fields: 'title,description,keywords',
         language: 'en',
         search: keywords,
         domains: inc_domains,
