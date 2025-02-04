@@ -57,7 +57,7 @@ function parseUserFilters(params) {
         exclude_domains: exc_domains,
         categories: categories,
         published_on: new Date().toJSON().slice(0, 10),
-        sort: 'published_on',
+        sort: 'relevance_score',
         limit: '3',
     }
 }

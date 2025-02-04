@@ -20,19 +20,21 @@ async function newsPOST(req) {
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-async function databaseGET() {
-  try {const response = await fetch('/api/database', {
+async function databaseGET(req) {
+  try {
+    const queryParams = new URLSearchParams(req).toString();
+    const url = `/api/database?${queryParams}`;
+    const response = await fetch(url, {
         method: "GET",
         headers: {
           'Content-Type': 'application/json',
         },
-        // body: JSON.stringify(req),
     })
     return await response.json()
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-export default function OutlinedCard({session, data, updateData}) {
+export default function OutlinedCard({session, updateData}) {
   const [keyOp, setKeyOp] = useState('+');
   const [keyInput, setKeyInput] = useState('');
   const [categories, setCategories] = useState({
@@ -124,16 +126,24 @@ export default function OutlinedCard({session, data, updateData}) {
     })
     updateData(res)
   };
+
   const handleSave = async (event) => {
     event.preventDefault();
 
-    const query = {
+    const filterQuery = {
       keywords: keywords,
       categories: categories,
       domains: domains,
     }
+
+    const userQuery = {
+      table: "Users",
+      email: session.user.email,
+      id: session.user.id
+    }
     
-    const res = await databaseGET()
+    const res = await databaseGET(userQuery)
+    console.log(res)
   }
 
   return (

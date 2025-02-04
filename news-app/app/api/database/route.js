@@ -11,26 +11,26 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 // Check if a user or preference exists based on user ID
 export async function GET(req) {
-    // replace temp_id with session ID, replace tableName with Users or UserPreferences (based off params)
-    const temp_id = "001"
-    // 
-    const tableName = "Users"
-    
+  console.log(req)
+  const { url } = req;
+  const queryParams = new URL(url, `http://localhost`).searchParams;
+  const { table, email, id } = Object.fromEntries(queryParams);
     const command = new GetCommand({
-        TableName: tableName,
+        TableName: table,
         Key: {
-          user_id: temp_id,
-        },
+          email: email,
+          user_id: id,
+        }
       });
 
-      try {
-        const res = await docClient.send(command);
-        console.log(res);
-        return res
-      } catch (error) {
-        console.error("Error putting item into DynamoDB:", error);
-        throw error;
-      } 
+    //   try {
+    //     const res = await docClient.send(command);
+    //     console.log(res);
+    //     return new Response(await res.text(), { status: 200 });
+    //   } catch (error) {
+    //     console.error("Error putting item into DynamoDB:", error);
+    //     throw error;
+    //   }
 }
 
 // Create a new user or Create a new user Preference
