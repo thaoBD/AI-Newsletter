@@ -185,7 +185,7 @@ export default function OutlinedCard({session, updateData}) {
         </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', maxWidth: '56%'}}>
           {keywords.map((keyword, index) => (
             <Button 
             variant="contained"
@@ -245,7 +245,7 @@ export default function OutlinedCard({session, updateData}) {
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', maxWidth: '56%'}}>
           {domains.map((domain, index) => (
             <Button 
             variant="contained"
