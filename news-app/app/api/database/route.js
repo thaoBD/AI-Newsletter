@@ -6,31 +6,38 @@ import {
   } from "@aws-sdk/lib-dynamodb";
 
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const client = new DynamoDBClient({});
+const client = new DynamoDBClient({
+  region: 'us-east-2',
+});
 const docClient = DynamoDBDocumentClient.from(client);
 
 // Check if a user or preference exists based on user ID
 export async function GET(req) {
-  console.log(req)
   const { url } = req;
   const queryParams = new URL(url, `http://localhost`).searchParams;
-  const { table, email, id } = Object.fromEntries(queryParams);
-    const command = new GetCommand({
-        TableName: table,
-        Key: {
-          email: email,
-          user_id: id,
-        }
-      });
+  const { table, id } = Object.fromEntries(queryParams);
+  const command = new GetCommand({
+      TableName: table,
+      Key: {
+        user_id: id,
+      }
+  });
 
-    //   try {
-    //     const res = await docClient.send(command);
-    //     console.log(res);
-    //     return new Response(await res.text(), { status: 200 });
-    //   } catch (error) {
-    //     console.error("Error putting item into DynamoDB:", error);
-    //     throw error;
-    //   }
+  try {
+    const res = await docClient.send(command);
+    
+    if (res.Item) {
+      return new Response(JSON.stringify(res.Item), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } else {
+      return new Response('Item not found', { status: 404 });
+    }
+  } catch (error) {
+    console.error('Error querying DynamoDB:', error);
+    return new Response('Error querying DynamoDB', { status: 500 });
+  }
 }
 
 // Create a new user or Create a new user Preference

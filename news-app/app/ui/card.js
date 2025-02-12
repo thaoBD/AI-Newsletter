@@ -7,6 +7,29 @@ import {Card, CardActions, CardContent} from '@mui/material';
 import {FormGroup, FormControlLabel, FormControl, FormHelperText} from '@mui/material';
 import {Button, TextField, Switch, Stack, Select, MenuItem, Checkbox} from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
+import {
+  createTheme,
+  ThemeProvider,
+  alpha,
+  getContrastRatio,
+} from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    inc: {
+      main: '#B2A5FF',
+      contrastText: '#fff',
+    },
+    exc: {
+      main: '#C4D9FF',
+      contrastText: '#fff',
+    },
+    minc: {
+      main: '#C5BAFF',
+      contrastText: '#fff',
+    },
+  },
+});
 
 async function newsPOST(req) {
   try {const response = await fetch('/api/news', {
@@ -31,7 +54,7 @@ async function databaseGET(req) {
         },
     })
     return await response.json()
-  } catch (error) {console.error('Error fetching data:', error);}
+  } catch (error) {console.log("Error in DynamoDB GET")}
 }
 
 export default function OutlinedCard({session, updateData}) {
@@ -52,7 +75,9 @@ export default function OutlinedCard({session, updateData}) {
   const { general, science, sports, business, health, entertainment, tech, politics, food, travel } = categories;
   const [domainOp, setDomainOp] = useState('+');
   const [domainInput, setDomainInput] = useState('');
-  const [keywords, setKeywords] = useState([]);
+  const [andKeys, setAndKeys] = useState([]);
+  const [orKeys, setOrKeys] = useState([]);
+  const [notKeys, setNotKeys] = useState([]);
   const [domains, setDomains] = useState([]);
   const [emailToggle, setEmailToggle] = useState(false);
   const [textToggle, setTextToggle] = useState(false);
@@ -75,15 +100,26 @@ export default function OutlinedCard({session, updateData}) {
     setKeyInput(e.target.value);
   };
   const handleAddKeyword = (e) => {
-    var input = keyOp + keyInput.trim()
+    var input = keyInput.trim()
     if (e.key === 'Enter' && input !== '') {
-      setKeywords((prev) => prev.includes(input) ? prev : [...prev, input]);
-      setKeyInput('');
+      if (keyOp == "+") {
+        setAndKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
+      else if (keyOp == "-") {
+        setNotKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
+      else if (keyOp == "|") {
+        setOrKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
     }
   };
-  const handleRemoveKeyword = (keyword) => {
-    setKeywords((prev) => prev.filter((item) => item !== keyword)
-    );
+  const handleRemoveKeyword = (type, keyword) => {
+    if (type == '+') { setAndKeys((prev) => prev.filter((item) => item !== keyword)); }
+    if (type == '|') { setOrKeys((prev) => prev.filter((item) => item !== keyword)); }
+    if (type == '-') { setNotKeys((prev) => prev.filter((item) => item !== keyword)); }
   };
 
   // Handle Categories
@@ -120,7 +156,9 @@ export default function OutlinedCard({session, updateData}) {
     // Prevent default form submission
     event.preventDefault();
     const res = await newsPOST({
-      keywords: keywords,
+      and: andKeys,
+      or: orKeys,
+      not: notKeys,
       categories: categories,
       domains: domains,
     })
@@ -131,14 +169,15 @@ export default function OutlinedCard({session, updateData}) {
     event.preventDefault();
 
     const filterQuery = {
-      keywords: keywords,
+      and: andKeys,
+      or: orKeys,
+      not: notKeys,
       categories: categories,
       domains: domains,
     }
 
     const userQuery = {
       table: "Users",
-      email: session.user.email,
       id: session.user.id
     }
     
@@ -147,6 +186,7 @@ export default function OutlinedCard({session, updateData}) {
   }
 
   return (
+    <ThemeProvider theme={theme}>
     <Box sx={{ minWidth: 275, backgroundColor: '#6573C3'}}>
       <Card variant="outlined"><React.Fragment><FormGroup>
       
@@ -169,6 +209,7 @@ export default function OutlinedCard({session, updateData}) {
         >
           <MenuItem value={"+"}>include</MenuItem>
           <MenuItem value={"-"}>exclude</MenuItem>
+          <MenuItem value={"|"}>may inc.</MenuItem>
         </Select>
         <FormHelperText>Required</FormHelperText>
         </FormControl>
@@ -186,12 +227,31 @@ export default function OutlinedCard({session, updateData}) {
         </Stack>
 
         <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', maxWidth: '56%'}}>
-          {keywords.map((keyword, index) => (
+          {andKeys.map((keyword, index) => (
             <Button 
             variant="contained"
             key={index}
-            onClick={() => handleRemoveKeyword(keyword)}
-            >{keyword}
+            color="inc"
+            onClick={() => handleRemoveKeyword('+', keyword)}
+            >{'✓ '+keyword}
+            </Button>
+          ))}
+          {orKeys.map((keyword, index) => (
+            <Button 
+            variant="contained"
+            key={index}
+            color="minc"
+            onClick={() => handleRemoveKeyword('|', keyword)}
+            >{'○ '+keyword}
+            </Button>
+          ))}
+          {notKeys.map((keyword, index) => (
+            <Button 
+            variant="contained"
+            key={index}
+            color="exc"
+            onClick={() => handleRemoveKeyword('-', keyword)}
+            >{'⨉ '+keyword}
             </Button>
           ))}
         </Stack>
@@ -283,5 +343,6 @@ export default function OutlinedCard({session, updateData}) {
       
       </FormGroup></React.Fragment></Card>
     </Box>
+    </ThemeProvider>
   );
 }
