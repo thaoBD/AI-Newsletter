@@ -43,18 +43,32 @@ async function newsPOST(req) {
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-async function databaseGET(req) {
-  try {
-    const queryParams = new URLSearchParams(req).toString();
-    const url = `/api/database?${queryParams}`;
-    const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-    })
-    return await response.json()
-  } catch (error) {console.log("Error in DynamoDB GET")}
+// async function databaseGET(req) {
+//   try {
+//     const queryParams = new URLSearchParams(req).toString();
+//     const url = `/api/database?${queryParams}`;
+//     const response = await fetch(url, {
+//         method: "GET",
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//     })
+//     return await response.json()
+//   } catch (error) {
+//     console.log("Error in DynamoDB GET")
+//   }
+// }
+
+async function databasePUT(req) {
+  try {const response = await fetch('/api/database?', {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(req),
+  })
+  return await response.json()
+  } catch (error) {console.error('Error with DynamoDB PUT:', error);}
 }
 
 export default function OutlinedCard({session, updateData}) {
@@ -169,19 +183,19 @@ export default function OutlinedCard({session, updateData}) {
     event.preventDefault();
 
     const filterQuery = {
+      id: session.user.id,
+      email: null,
+      phoneNumber: null,
       and: andKeys,
       or: orKeys,
       not: notKeys,
       categories: categories,
       domains: domains,
+      notifText: false,
+      notifEmail: false
     }
 
-    const userQuery = {
-      table: "Users",
-      id: session.user.id
-    }
-    
-    const res = await databaseGET(userQuery)
+    const res = databasePUT(filterQuery)
     console.log(res)
   }
 
