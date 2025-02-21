@@ -1,5 +1,5 @@
 'use client'
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -43,21 +43,21 @@ async function newsPOST(req) {
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-// async function databaseGET(req) {
-//   try {
-//     const queryParams = new URLSearchParams(req).toString();
-//     const url = `/api/database?${queryParams}`;
-//     const response = await fetch(url, {
-//         method: "GET",
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//     })
-//     return await response.json()
-//   } catch (error) {
-//     console.log("Error in DynamoDB GET")
-//   }
-// }
+async function databaseGET(req) {
+  try {
+    const queryParams = new URLSearchParams(req).toString();
+    const url = `/api/database?${queryParams}`;
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+    })
+    return await response.json()
+  } catch (error) {
+    console.log("Error in DynamoDB GET")
+  }
+}
 
 async function databasePUT(req) {
   try {const response = await fetch('/api/database?', {
@@ -168,7 +168,7 @@ export default function OutlinedCard({session, updateData}) {
   // Handle Form Submission
   const handleFilter = async (event) => {
     // Prevent default form submission
-    event.preventDefault();
+    if (event) {event.preventDefault();}
     const res = await newsPOST({
       and: andKeys,
       or: orKeys,
@@ -191,13 +191,37 @@ export default function OutlinedCard({session, updateData}) {
       not: notKeys,
       categories: categories,
       domains: domains,
-      notifText: false,
-      notifEmail: false
+      notifText: textToggle,
+      notifEmail: emailToggle
     }
 
     const res = databasePUT(filterQuery)
-    console.log(res)
+    console.log("Saved User Profile and Preferences")
   }
+
+  const autoFill = async(event) => {
+    const query = {
+      table: "UserPreferences",
+      id: session.user.id
+    }
+    const res = await databaseGET(query)
+    console.log("Autofilled User Preferences")
+    
+    setDomains(res.Domains)
+    setCategories(res.Categories)
+    setAndKeys(res.Keys.And)
+    setOrKeys(res.Keys.Or)
+    setNotKeys(res.Keys.Not)
+    setEmailToggle(res.Notifications.Email)
+    setTextToggle(res.Notifications.Text)
+  }
+  useEffect(() => {
+    let ignore = false;
+    if (!ignore) {
+      autoFill();
+      ignore = true;
+    }
+    },[]);
 
   return (
     <ThemeProvider theme={theme}>
