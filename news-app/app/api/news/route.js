@@ -9,6 +9,7 @@ var requestOptions = {
 
 export async function POST(req) {
     var url = "https://api.thenewsapi.com/v1/news/all?" + createQuery(parseUserFilters(await req.json()));
+    console.log(url)
     // console.log(url)
     try {
         const response = await fetch(url, requestOptions)
@@ -24,40 +25,38 @@ export async function POST(req) {
 function parseUserFilters(params) {
     console.log(params)
     // Parse domain filters
-    let inc_domains = ''
-    let exc_domains = ''
+    let incDomains = ''
+    let excDomains = ''
     for  (let i=0; i < params.domains.length; i++) {
         if (params.domains[i].charAt(0) == '+') {
-            inc_domains += ',' + params.domains[i].slice(1)
+            incDomains += ',' + params.domains[i].slice(1)
         }
         if (params.domains[i].charAt(0) == '-') {
-            exc_domains += params.domains[i].slice(1)
+            excDomains += params.domains[i].slice(1)
         }
     }
 
     // Parse search filters
     let keywords = ''
-    for (let i = 0; i < params.keywords.length; i++) {
-        if (params.keywords[i].charAt(0) == '+') {
-            keywords += ` ${params.keywords[i]}`
-        } else if (params.keywords[i].charAt(0) == '-') {
-            keywords += ` ${params.keywords[i]}`
-        }
-    }
+    let tempKeys = ''
+    for (let i = 0; i < params.and.length; i++) { keywords += ` +${params.and[i]}` }
+    for (let i = 0; i < params.not.length; i++) { keywords += ` -${params.not[i]}` }
+    for (let i = 0; i < params.or.length; i++) { tempKeys += ` |${params.or[i]}` }
+    keywords += ` +(${tempKeys})`
 
     // Parse category filters
     const categories = Object.keys(params.categories).filter(key => params.categories[key] === true).join(',');
 
     return {
         api_token: NEWS_API_KEY,
-        search_fields: 'title,description,keywords,main_text',
+        search_fields: 'title,description,keywords',
         language: 'en',
         search: keywords,
-        domains: inc_domains,
-        exclude_domains: exc_domains,
+        domains: incDomains,
+        exclude_domains: excDomains,
         categories: categories,
         published_on: new Date().toJSON().slice(0, 10),
-        sort: 'published_on',
+        sort: 'relevance_score',
         limit: '3',
     }
 }

@@ -1,5 +1,5 @@
 'use client'
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -7,6 +7,29 @@ import {Card, CardActions, CardContent} from '@mui/material';
 import {FormGroup, FormControlLabel, FormControl, FormHelperText} from '@mui/material';
 import {Button, TextField, Switch, Stack, Select, MenuItem, Checkbox} from '@mui/material';
 import InputLabel from '@mui/material/InputLabel';
+import {
+  createTheme,
+  ThemeProvider,
+  alpha,
+  getContrastRatio,
+} from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    inc: {
+      main: '#B2A5FF',
+      contrastText: '#fff',
+    },
+    exc: {
+      main: '#C4D9FF',
+      contrastText: '#fff',
+    },
+    minc: {
+      main: '#C5BAFF',
+      contrastText: '#fff',
+    },
+  },
+});
 
 async function newsPOST(req) {
   try {const response = await fetch('/api/news', {
@@ -20,19 +43,35 @@ async function newsPOST(req) {
   } catch (error) {console.error('Error fetching data:', error);}
 }
 
-async function databasePOST(req) {
-  try {const response = await fetch('/api/database', {
-        method: "POST",
+async function databaseGET(req) {
+  try {
+    const queryParams = new URLSearchParams(req).toString();
+    const url = `/api/database?${queryParams}`;
+    const response = await fetch(url, {
+        method: "GET",
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(req),
     })
     return await response.json()
-  } catch (error) {console.error('Error fetching data:', error);}
+  } catch (error) {
+    console.log("Error in DynamoDB GET")
+  }
 }
 
-export default function OutlinedCard({data, updateData}) {
+async function databasePUT(req) {
+  try {const response = await fetch('/api/database?', {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(req),
+  })
+  return await response.json()
+  } catch (error) {console.error('Error with DynamoDB PUT:', error);}
+}
+
+export default function OutlinedCard({session, updateData}) {
   const [keyOp, setKeyOp] = useState('+');
   const [keyInput, setKeyInput] = useState('');
   const [categories, setCategories] = useState({
@@ -50,7 +89,9 @@ export default function OutlinedCard({data, updateData}) {
   const { general, science, sports, business, health, entertainment, tech, politics, food, travel } = categories;
   const [domainOp, setDomainOp] = useState('+');
   const [domainInput, setDomainInput] = useState('');
-  const [keywords, setKeywords] = useState([]);
+  const [andKeys, setAndKeys] = useState([]);
+  const [orKeys, setOrKeys] = useState([]);
+  const [notKeys, setNotKeys] = useState([]);
   const [domains, setDomains] = useState([]);
   const [emailToggle, setEmailToggle] = useState(false);
   const [textToggle, setTextToggle] = useState(false);
@@ -63,7 +104,7 @@ export default function OutlinedCard({data, updateData}) {
     setTextToggle(prevState => !prevState);
   };
 
-  // Handle Key Op
+  // Handle Keywords Op
   const handleKeyOp = (e) => {
     setKeyOp(e.target.value);
   };
@@ -73,15 +114,26 @@ export default function OutlinedCard({data, updateData}) {
     setKeyInput(e.target.value);
   };
   const handleAddKeyword = (e) => {
-    var input = keyOp + keyInput.trim()
+    var input = keyInput.trim()
     if (e.key === 'Enter' && input !== '') {
-      setKeywords((prev) => prev.includes(input) ? prev : [...prev, input]);
-      setKeyInput('');
+      if (keyOp == "+") {
+        setAndKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
+      else if (keyOp == "-") {
+        setNotKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
+      else if (keyOp == "|") {
+        setOrKeys((prev) => prev.includes(input) ? prev : [...prev, input]);
+        setKeyInput('');
+      }
     }
   };
-  const handleRemoveKeyword = (keyword) => {
-    setKeywords((prev) => prev.filter((item) => item !== keyword)
-    );
+  const handleRemoveKeyword = (type, keyword) => {
+    if (type == '+') { setAndKeys((prev) => prev.filter((item) => item !== keyword)); }
+    if (type == '|') { setOrKeys((prev) => prev.filter((item) => item !== keyword)); }
+    if (type == '-') { setNotKeys((prev) => prev.filter((item) => item !== keyword)); }
   };
 
   // Handle Categories
@@ -116,16 +168,63 @@ export default function OutlinedCard({data, updateData}) {
   // Handle Form Submission
   const handleFilter = async (event) => {
     // Prevent default form submission
-    event.preventDefault();
+    if (event) {event.preventDefault();}
     const res = await newsPOST({
-      keywords: keywords,
+      and: andKeys,
+      or: orKeys,
+      not: notKeys,
       categories: categories,
       domains: domains,
     })
     updateData(res)
   };
 
+  const handleSave = async (event) => {
+    event.preventDefault();
+
+    const filterQuery = {
+      id: session.user.id,
+      email: null,
+      phoneNumber: null,
+      and: andKeys,
+      or: orKeys,
+      not: notKeys,
+      categories: categories,
+      domains: domains,
+      notifText: textToggle,
+      notifEmail: emailToggle
+    }
+
+    const res = databasePUT(filterQuery)
+    console.log("Saved User Profile and Preferences")
+  }
+
+  const autoFill = async(event) => {
+    const query = {
+      table: "UserPreferences",
+      id: session.user.id
+    }
+    const res = await databaseGET(query)
+    console.log("Autofilled User Preferences")
+    
+    setDomains(res.Domains)
+    setCategories(res.Categories)
+    setAndKeys(res.Keys.And)
+    setOrKeys(res.Keys.Or)
+    setNotKeys(res.Keys.Not)
+    setEmailToggle(res.Notifications.Email)
+    setTextToggle(res.Notifications.Text)
+  }
+  useEffect(() => {
+    let ignore = false;
+    if (!ignore) {
+      autoFill();
+      ignore = true;
+    }
+    },[]);
+
   return (
+    <ThemeProvider theme={theme}>
     <Box sx={{ minWidth: 275, backgroundColor: '#6573C3'}}>
       <Card variant="outlined"><React.Fragment><FormGroup>
       
@@ -148,6 +247,7 @@ export default function OutlinedCard({data, updateData}) {
         >
           <MenuItem value={"+"}>include</MenuItem>
           <MenuItem value={"-"}>exclude</MenuItem>
+          <MenuItem value={"|"}>may inc.</MenuItem>
         </Select>
         <FormHelperText>Required</FormHelperText>
         </FormControl>
@@ -164,13 +264,32 @@ export default function OutlinedCard({data, updateData}) {
         </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2}>
-          {keywords.map((keyword, index) => (
+        <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', maxWidth: '56%'}}>
+          {andKeys.map((keyword, index) => (
             <Button 
             variant="contained"
             key={index}
-            onClick={() => handleRemoveKeyword(keyword)}
-            >{keyword}
+            color="inc"
+            onClick={() => handleRemoveKeyword('+', keyword)}
+            >{'✓ '+keyword}
+            </Button>
+          ))}
+          {orKeys.map((keyword, index) => (
+            <Button 
+            variant="contained"
+            key={index}
+            color="minc"
+            onClick={() => handleRemoveKeyword('|', keyword)}
+            >{'○ '+keyword}
+            </Button>
+          ))}
+          {notKeys.map((keyword, index) => (
+            <Button 
+            variant="contained"
+            key={index}
+            color="exc"
+            onClick={() => handleRemoveKeyword('-', keyword)}
+            >{'⨉ '+keyword}
             </Button>
           ))}
         </Stack>
@@ -224,7 +343,7 @@ export default function OutlinedCard({data, updateData}) {
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', maxWidth: '56%'}}>
           {domains.map((domain, index) => (
             <Button 
             variant="contained"
@@ -257,10 +376,11 @@ export default function OutlinedCard({data, updateData}) {
       {/* Submission Section */}
       <CardActions>
         <Button size="small" onClick={handleFilter} >Apply Filter</Button>
-        <Button size="small" disabled>Save</Button>
+        <Button size="small" onClick={handleSave}>Save</Button>
       </CardActions>
       
       </FormGroup></React.Fragment></Card>
     </Box>
+    </ThemeProvider>
   );
 }

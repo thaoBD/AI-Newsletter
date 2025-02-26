@@ -8,13 +8,13 @@ import { useSession, signIn, signOut } from "next-auth/react"
 
 
 export default function Home() {
-  const { sessionData: session, status } = useSession()
+  const { data: session, status } = useSession()
   const [data, setData] = useState([]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
   }
-  
+
   if (status === "unauthenticated") {
     return(
       <>
@@ -46,7 +46,7 @@ export default function Home() {
         <NewsTable data = {data}/>
         </Grid>
         <Grid size={3}>
-        <OutlinedCard data = {data} updateData = {updateData}/>
+        <OutlinedCard session = {session} updateData = {updateData}/>
         </Grid>
       </Grid>
       <button onClick={() => signOut()}>Sign Out</button>
