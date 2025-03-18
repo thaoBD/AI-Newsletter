@@ -51,8 +51,8 @@ export default function Home() {
     required: true
   });
   const [data, setData] = useState([]);
-  const [email, setEmail] = useState(1);
-  const [phone, setPhone] = useState(1);
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [open, setOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function Home() {
   };
 
   const handleOpen = async () => {
-    if (email == 1 && phone == 1) {
+    if (!email && !phone) {
       const query = {
         table: "Users",
         id: session.user.id
