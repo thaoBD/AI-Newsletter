@@ -47,7 +47,9 @@ async function databasePUT(req) {
 }
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession({
+    required: true
+  });
   const [data, setData] = useState([]);
   const [email, setEmail] = useState(1);
   const [phone, setPhone] = useState(1);
@@ -57,15 +59,6 @@ export default function Home() {
 
   if (status === "loading") {
     return <div>Loading...</div>;
-  }
-
-  if (status === "unauthenticated") {
-    return(
-      <>
-      Not signed in <br/>
-      <button onClick={() => signIn()}>Sign in</button>
-      </>
-    )
   }
   
   const handleEmailInputChange = (e) => {
